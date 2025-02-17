@@ -1,10 +1,12 @@
+`timescale 1ns / 1ps
+
 module my_FPHUB_adder #(
     parameter M = 24,       // Size of the mantissas (including the implicit 1. That is to say, the mantissa is unpackaged as the form "1.M")
     parameter E = 8         // Size of the exponent
 )(
-    input wire [E+M:0] X,   // Input X (1 bit: Sx [E+M]; 8 bits: Ex [E+M-1:M]; 24 bits: Mx [M-1:0]) 
-    input wire [E+M:0] Y,   // Input Y (same structure as X)
-    output wire [E+M:0] Z   // Output Z (same structure as X)
+    input logic [E+M:0] X,   // Input X (1 bit: Sx [E+M]; 8 bits: Ex [E+M-1:M]; 24 bits: Mx [M-1:0]) 
+    input logic [E+M:0] Y,   // Input Y (same structure as X)
+    output logic [E+M:0] Z   // Output Z (same structure as X)
 );
 
 //--------------------------------------------------------------------------------------------------
@@ -30,17 +32,17 @@ Exponent_difference #(
 // the exponents.
 //--------------------------------------------------------------------------------------------------
 
-logic [M-1:0] Mx = (X_greater_than_Y) ? X[M-1:0] : Y[M-1:0];      // Mx = X if X > Y, Y otherwise
-logic [M-1:0] My = (X_greater_than_Y) ? Y[M-1:0] : X[M-1:0];      // My = Y if X > Y, X otherwise
-
-logic [E-1:0] Ez = (X_greater_than_Y) ? X[E+M-1:M] : Y[E+M-1:M];  // Ez = Ex if X > Y, Ey otherwise
-
-initial begin
-    $display("X = %b", X);
-    $display("Y = %b", Y);
-    $display("My = %b", My);
-    $display("Mx = %b", Mx);
-    $display("Ez = %b", Ez);
+logic [M-1:0] Mx;
+logic [M-1:0] My;
+logic [E-1:0] Ez;
+  
+always_comb begin
+  Mx = (X_greater_than_Y) ? X[M-1:0] : Y[M-1:0];
+  My = (X_greater_than_Y) ? Y[M-1:0] : X[M-1:0];
+  Ez = (X_greater_than_Y) ? X[E+M-1:M] : Y[E+M-1:M];
+      
+  // Se forma Z con 1 bit de signo (0), Ez y 24 ceros para la mantisa
+  Z = {1'b0, Ez, 24'd0};
 end
 
 endmodule
