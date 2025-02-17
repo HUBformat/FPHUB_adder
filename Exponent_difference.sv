@@ -10,8 +10,8 @@ module Exponent_difference #(
     );
 
 always_comb begin
-    dif = Ex - Ey;
+    dif = {1'b0, Ex} - {1'b0, Ey};
     
-    X_greater_than_Y = (dif[E] >= 0);
+    X_greater_than_Y = (dif >= 0);
 end
 endmodule
