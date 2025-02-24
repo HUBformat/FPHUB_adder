@@ -112,6 +112,6 @@ module LZA #(
   // local position within the active group.
   // shift_amt = (selected group * GROUP_SIZE) + (local index within the group)
   // --------------------------------------------------------------
-  assign shift_amt = M - (sel_group * GROUP_SIZE + group_first_index[sel_group]);
+  assign shift_amt = M + 1 - (sel_group * GROUP_SIZE + (sel_group - group_first_index[sel_group]));
 
 endmodule
