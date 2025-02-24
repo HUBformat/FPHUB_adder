@@ -6,6 +6,7 @@ module my_FPHUB_adder #(
 )(
     input logic signed[E+M:0] X,  // Entrada X
     input logic signed[E+M:0] Y,  // Entrada Y
+    output logic [E+M:0] Z,       // Salida Z
     output logic [M+1:0] result_out, // Salida con la mantisa sumada/restada
     output logic subtraction_output,
     output logic M_major_sign_output,
@@ -70,6 +71,7 @@ always_comb begin
     end
     M_major_sign_output = M_major_sign;
     diff_abs = (diff < 0) ? -diff : diff;
+    $display("diff_abs = %b", diff_abs);
 end
 
 //--------------------------------------------------------------------------------------------------
@@ -94,8 +96,18 @@ shifter #(
 //--------------------------------------------------------------------------------------------------
 logic subtraction;
 logic [M+1:0] result;
+logic [$clog2(M)-1:0] shift_LZA;
+logic [E-1:0] Ez_normalized;
+
+LZA #(M)LZA_inst (
+    .A(M_major[M:0]),
+    .B(M_minor_aligned[M:0]),
+    .shift_amt(shift_LZA)
+);
 
 always_comb begin
+    // Mostrar desplazamiento de LZA
+    //$display("Leading Zeros = %d (%b)", shift_LZA, shift_LZA);
     // Determinar si la operación es suma o resta
     subtraction = M_major_sign ^ M_minor_sign;
     subtraction_output = subtraction;
@@ -114,9 +126,34 @@ always_comb begin
     else begin
         result = M_major + M_minor_aligned;
     end
+    
+    // Normalization
+    Ez_normalized = Ez;
+    if (subtraction) begin
+        if (result[M+1] == 1) begin
+            result = ~result + 1;
+        end
+        if (shift_LZA > 0) begin
+            result = result << shift_LZA;
+            Ez_normalized = Ez_normalized - shift_LZA;
+        end
+    end
+    else begin
+        if (result[M+1] == 1) begin
+            result = result >> 1;
+            Ez_normalized = Ez_normalized + 1;
+        end
+    end
+    Z[M-1:0] = result[M:1];
+    Z[E+M-1:M] = Ez_normalized;
+    if (subtraction) begin
+        Z[E+M] = M_major_sign;
+    end
+    else begin
+        Z[E+M] = X[E+M];    
+    end
 end
 
 // Asignamos la salida
 assign result_out = result;
-
 endmodule
