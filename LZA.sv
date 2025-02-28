@@ -1,5 +1,4 @@
 `timescale 1ns / 1ps
-
 // Real LZA module with a hierarchical (prefix tree) network
 // Parameters:
 //   M: total input width (e.g., 32 bits)
@@ -24,7 +23,7 @@ module LZA #(
   logic [M:0] G, P, Z;
   genvar i;
   generate
-    for (i = 0; i < M; i = i + 1) begin : gpz_gen
+    for (i = 0; i <= M; i = i + 1) begin : gpz_gen
       // G[i] is 1 if A[i] is 1 and B[i] is 0.
       assign G[i] = A[i] & ~B[i];
       // Z[i] is 1 if A[i] is 0 and B[i] is 1.
@@ -68,13 +67,15 @@ module LZA #(
       always_comb begin
         casez (grp)
             // If the first bit is 1
-            4'b1???: group_first_index[j] = 0;
+            5'b1????: group_first_index[j] = 0;
             // If bit 0 is 0 and bit 1 is 1
-            4'b01??: group_first_index[j] = 1;
+            5'b01???: group_first_index[j] = 1;
             // If bit 0 and bit 1 are 0, but bit 2 is 1
-            4'b001?: group_first_index[j] = 2;
+            5'b001??: group_first_index[j] = 2;
             // If bit 0, 1, and 2 are 0, but bit 3 is 1
-            4'b0001: group_first_index[j] = 3;
+            5'b0001?: group_first_index[j] = 3;
+            // If bit 0, 1, 2 and 3 are 0, but bit 4 is 1
+            5'b00001: group_first_index[j] = 4;
             // Default case
             default: group_first_index[j] = 0;
         endcase
@@ -103,7 +104,8 @@ module LZA #(
     end
   endfunction
 
-  logic [SHIFT_WIDTH-1:0] sel_group;
+  logic [SHIFT_WIDTH-1:0] sel_group, effective_index;
+  logic LZA_carry;
   assign sel_group = leading_group(group_or);
 
   // --------------------------------------------------------------
@@ -112,6 +114,14 @@ module LZA #(
   // local position within the active group.
   // shift_amt = (selected group * GROUP_SIZE) + (local index within the group)
   // --------------------------------------------------------------
-  assign shift_amt = M + 1 - (sel_group * GROUP_SIZE + (sel_group - group_first_index[sel_group]));
-
+  
+  //assign shift_amt = M + 1 - (sel_group * GROUP_SIZE + (sel_group - group_first_index[sel_group]));
+  //assign shift_amt = M - (sel_group * GROUP_SIZE + (GROUP_SIZE - 1 - group_first_index[sel_group]));
+  always_comb begin
+    effective_index = sel_group * GROUP_SIZE + (GROUP_SIZE - 1 - group_first_index[sel_group]);
+    LZA_carry = (Z[effective_index - 1] == 1'b1) ? 1'b1 : 1'b0;
+    shift_amt = M - effective_index + LZA_carry;
+  end
+  
+  
 endmodule
