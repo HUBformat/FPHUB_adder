@@ -1,14 +1,14 @@
 `timescale 1ns / 1ps
 
-module special_cases #(
+module special_cases_detector #(
     parameter int M = 23,                                       // Mantissa size
     parameter int E = 8,                                        // Exponent size
     parameter int special_case = 7                              // Number of special cases (including no special case)
 )(              
     input logic [E+M:0] X,                                      // Entrada X
     input logic [E+M:0] Y,                                      // Entrada Y
-    output logic [$clog2(special_case):0] X_special_case,       // Indicador del caso especial de X (0 si no es especial)
-    output logic [$clog2(special_case):0] Y_special_case        // Indicador del caso especial de Y (0 si no es especial)
+    output logic [$clog2(special_case)-1:0] X_special_case,       // Indicador del caso especial de X (0 si no es especial)
+    output logic [$clog2(special_case)-1:0] Y_special_case        // Indicador del caso especial de Y (0 si no es especial)
     );
 
 /*-----------------------------------------------
