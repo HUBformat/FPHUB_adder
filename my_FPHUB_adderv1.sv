@@ -20,6 +20,7 @@ module my_FPHUB_adder #(
 //--------------------------------------------------------------------------------------------------
 // Identificación de casos especiales
 //--------------------------------------------------------------------------------------------------
+logic [M+E:0] special_result;
 logic [$clog2(special_case)-1:0] X_special_case, Y_special_case;
 logic special_case_detected;
 
@@ -37,7 +38,7 @@ special_result_for_adder #(E, M, special_case) special_result_inst (
     .Y(Y),
     .X_special_case(X_special_case),
     .Y_special_case(Y_special_case),
-    .special_result(Z)
+    .special_result(special_result)
 );
 
 //--------------------------------------------------------------------------------------------------
@@ -142,7 +143,7 @@ always_comb begin
     //else begin
     subtraction = M_major_sign ^ M_minor_sign;
     subtraction_output = subtraction;
-    
+
     M_major_output = M_major;
     M_minor_output = M_minor_aligned;
     M_minor_output_C2 = ~M_minor_aligned + 1;
@@ -157,10 +158,10 @@ always_comb begin
     else begin
         M_result = M_major + M_minor_aligned;
     end
-    
+
     // BORRAR ESTA LINEA
     result_out = M_result;
-    
+
     // Normalization
     Ez_normalized = Ez;
     if (subtraction) begin
@@ -178,7 +179,7 @@ always_comb begin
             Ez_normalized = Ez_normalized + 1;
         end
     end
-    
+
     Sz = (subtraction) ? M_major_sign : X[E+M];
     //if (subtraction) begin
     //    Sz = M_major_sign;
@@ -187,7 +188,7 @@ always_comb begin
     //    Z[E+M] = X[E+M];    
     //end
     result = {Sz, Ez_normalized, M_result[M:1]};
-    
+
     end
 
 assign Z = (special_case_detected) ? special_result : result;
