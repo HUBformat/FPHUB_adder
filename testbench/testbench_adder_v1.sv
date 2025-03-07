@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module testbench_adder_v1;
-    parameter M = 24;
+    parameter M = 23;
     parameter E = 8;
     
     // Señales

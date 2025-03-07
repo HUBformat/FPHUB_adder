@@ -50,7 +50,7 @@ always_comb begin
         end
         else begin
             // Si el signo es 0, +0 (código 3); si es 1, -0 (código 4)
-            X_special_case = (X[E+M]) ? $clog2(special_case)'d4 : CASE_ZERO_N : CASE_ZERO_P;
+            X_special_case = (X[E+M]) ? CASE_ZERO_N : CASE_ZERO_P;
         end
     end
 end
@@ -59,14 +59,18 @@ end
 always_comb begin
     Y_special_case = 0;
     if (Y[E+M-1:0] == {E+M{1'b1}}) begin
-        Y_special_case = (Y[E+M]) ? $clog2(special_case)'d2 : $clog2(special_case)'d1;     // +inf
+        // Si el signo es 0, +inf (código 1); si es 1, -inf (código 2)
+        Y_special_case = (Y[E+M]) ? CASE_INF_N : CASE_INF_P;
     end 
     else if (Y[E+M-2:0] == {E+M-1{1'b0}}) begin
+        // Si el MSB del exponente es 1, es un caso especial de +1/-1. En caso contrario, +0/-0
         if (Y[E+M-1]) begin
-            Y_special_case = (Y[E+M]) ? $clog2(special_case)'d6 : $clog2(special_case)'d5;
+            // Si el signo es 0, +1 (código 5); si es 1, -1 (código 6)
+            Y_special_case = (Y[E+M]) ? CASE_ONE_N : CASE_ONE_P;
         end
         else begin
-            Y_special_case = (Y[E+M]) ? $clog2(special_case)'d4 : $clog2(special_case)'d3;
+            // Si el signo es 0, +0 (código 3); si es 1, -0 (código 4)
+            Y_special_case = (Y[E+M]) ? CASE_ZERO_N : CASE_ZERO_P;
         end
     end
 end

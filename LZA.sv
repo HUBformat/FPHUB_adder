@@ -6,13 +6,13 @@
 //   NUM_GROUPS: number of groups = M / GROUP_SIZE
 //   SHIFT_WIDTH: width of the shift counter = log2(M)
 module LZA #(
-  parameter M = 24,
+  parameter M = 23,
   parameter GROUP_SIZE  = 5,
-  parameter NUM_GROUPS  = (M+1) / GROUP_SIZE,
+  parameter NUM_GROUPS  = (M+2) / GROUP_SIZE,
   parameter SHIFT_WIDTH = $clog2(M)
 )(
-  input  logic [M:0] A,         // Mantissa part or value A
-  input  logic [M:0] B,         // Mantissa part or value B
+  input  logic [M+1:0] A,         // Mantissa part or value A
+  input  logic [M+1:0] B,         // Mantissa part or value B
   output logic [SHIFT_WIDTH-1:0] shift_amt  // Number of bits to shift (leading zero count)
 );
 
@@ -20,10 +20,10 @@ module LZA #(
   // Step 1: Calculate the G, P, and Z signals for each bit.
   // --------------------------------------------------------------
   // These signals are computed bit by bit in parallel.
-  logic [M:0] G, P, Z;
+  logic [M+1:0] G, P, Z;
   genvar i;
   generate
-    for (i = 0; i <= M; i = i + 1) begin : gpz_gen
+    for (i = 0; i <= M+1; i = i + 1) begin : gpz_gen
       // G[i] is 1 if A[i] is 1 and B[i] is 0.
       assign G[i] = A[i] & ~B[i];
       // Z[i] is 1 if A[i] is 0 and B[i] is 1.
@@ -37,7 +37,7 @@ module LZA #(
 
   // Define the "effective" vector that marks the positions where a difference is generated
   // (either by G or by Z).
-  logic [M:0] effective;
+  logic [M+1:0] effective;
   assign effective = G | Z;
 
   // --------------------------------------------------------------
@@ -120,8 +120,6 @@ module LZA #(
   always_comb begin
     effective_index = sel_group * GROUP_SIZE + (GROUP_SIZE - 1 - group_first_index[sel_group]);
     LZA_carry = (Z[effective_index - 1] == 1'b1) ? 1'b1 : 1'b0;
-    shift_amt = M - effective_index + LZA_carry;
+    shift_amt = M + 1 - effective_index + LZA_carry;
   end
-  
-  
 endmodule

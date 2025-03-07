@@ -5,24 +5,27 @@ module my_FPHUB_adder #(
     parameter int E = 8,               // Exponent size parameter
     parameter int special_case = 7     // Number of special cases (including no special case)
 )(
-    input logic signed[E+M:0] X,  // Entrada X
-    input logic signed[E+M:0] Y,  // Entrada Y
+    input logic signed [E+M:0] X,  // Entrada X
+    input logic signed [E+M:0] Y,  // Entrada Y
     output logic [E+M:0] Z,       // Salida Z
     output logic [M+1:0] result_out, // Salida con la mantisa sumada/restada
     output logic subtraction_output,
     output logic M_major_sign_output,
-    output logic [M+1:0] M_major_output,
-    output logic [M+1:0] M_minor_output,
-    output logic [M+1:0] M_minor_output_C2,
+    output logic [M+2:0] M_major_output,
+    output logic [M+2:0] M_minor_output,
+    output logic [M+2:0] M_minor_output_C2,
     output logic signed[E:0] diff_output
 );
-
 //--------------------------------------------------------------------------------------------------
 // Identificación de casos especiales
 //--------------------------------------------------------------------------------------------------
 logic [M+E:0] special_result;
 logic [$clog2(special_case)-1:0] X_special_case, Y_special_case;
 logic special_case_detected;
+
+//always_comb begin
+//    $display("Antes de los casos especiales: X = %b %b %b, Y = %b %b %b", X[E+M], X[E+M-1:M], X[M-1:0], Y[E+M], Y[E+M-1:M], Y[M-1:0]);
+//end
 
 special_cases_detector #(E, M, special_case) special_cases_inst (
     .X(X),
@@ -41,6 +44,12 @@ special_result_for_adder #(E, M, special_case) special_result_inst (
     .special_result(special_result)
 );
 
+
+//always_comb begin
+//    $display("X = %b %b %b, Y = %b %b %b", X[E+M], X[E+M-1:M], X[M-1:0], Y[E+M], Y[E+M-1:M], Y[M-1:0]);
+//    $display("X_special_case = %d, Y_special_case = %d", X_special_case, Y_special_case);
+//end
+
 //--------------------------------------------------------------------------------------------------
 // Cálculo de la diferencia de exponentes
 //--------------------------------------------------------------------------------------------------
@@ -57,20 +66,20 @@ Exponent_difference #(E) Exponent_difference_inst (
     .X_greater_than_Y(X_greater_than_Y),
     .Ex_equal_Ey(Ex_equal_Ey)
 );
-
 assign diff_output = diff;
-/*always_comb begin
-    diff_output = diff;
-    //$display("diff en my_FPHUB_adder interpretado como signed = %0d", signed'(diff));
-    //$display("diff_output = %0d", signed'(diff_output));
-end*/
 
-
-// Módulo para comparar mantisas (solo se ejecuta si los exponentes son iguales)
 logic Mx_greater_than_My;
+logic [M:0] Mx_complete , My_complete;
+
+always_comb begin
+    Mx_complete = {1'b1, X[M-1:0]};
+    My_complete = {1'b1, Y[M-1:0]};
+    //$display("Mx_complete = %b; My_complete = %b", Mx_complete, My_complete);
+end
+
 compare_mantissas #(M) compare_inst (
-    .Mx(X[M-1:0]),
-    .My(Y[M-1:0]),
+    .Mx(Mx_complete),
+    .My(My_complete),
     .Mx_greater_than_My(Mx_greater_than_My)
 );
 
@@ -192,11 +201,4 @@ always_comb begin
     end
 
 assign Z = (special_case_detected) ? special_result : result;
-
-//assign Z[M-1:0] = (special_case_detected) ? special_result : M_result[M-1:1];
-//assign Z[E+M-1:M] = Ez_normalized;
-//assign Z[E+M] = (subtraction) ? M_major_sign : X[E+M];
-
-// Asignamos la salida
-//assign result_out = M_result;
 endmodule
