@@ -34,7 +34,7 @@ special_cases_detector #(E, M, special_case) special_cases_inst (
     .Y_special_case(Y_special_case)
 );
 
-assign special_case_detected = (X_special_case != 0) || (Y_special_case != 0);
+//assign special_case_detected = (X_special_case != 0) || (Y_special_case != 0);
 
 special_result_for_adder #(E, M, special_case) special_result_inst (
     .X(X),
@@ -92,22 +92,26 @@ logic [E-1:0] Ez;
 
 always_comb begin
     if (Ex_equal_Ey) begin
-        M_major = (Mx_greater_than_My) ? {1'b0, 1'b1, X[M-1:0], 1'b1} : {1'b0, 1'b1, Y[M-1:0], 1'b1};
+        M_major = (Mx_greater_than_My) ? {1'b0, 1'b1, X[M-1:0], (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1} : {1'b0, 1'b1, Y[M-1:0], (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1};
         M_major_sign = (Mx_greater_than_My) ? X[M+E] : Y[M+E];
-        M_minor = (Mx_greater_than_My) ? {1'b0, 1'b1, Y[M-1:0], 1'b1} : {1'b0, 1'b1, X[M-1:0], 1'b1};
+        M_minor = (Mx_greater_than_My) ? {1'b0, 1'b1, Y[M-1:0], (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1} : {1'b0, 1'b1, X[M-1:0], (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1};
         M_minor_sign = (Mx_greater_than_My) ? Y[M+E] : X[M+E];
         Ez = X[E+M-1:M];
     end
     else begin
-        M_major = (X_greater_than_Y) ? {1'b0, 1'b1, X[M-1:0], 1'b1} : {1'b0, 1'b1, Y[M-1:0], 1'b1};
+        M_major = (X_greater_than_Y) ? {1'b0, 1'b1, X[M-1:0], (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1} : {1'b0, 1'b1, Y[M-1:0], (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1};
         M_major_sign = (X_greater_than_Y) ? X[M+E] : Y[M+E];
-        M_minor = (X_greater_than_Y) ? {1'b0, 1'b1, Y[M-1:0], 1'b1} : {1'b0, 1'b1, X[M-1:0], 1'b1};
+        M_minor = (X_greater_than_Y) ? {1'b0, 1'b1, Y[M-1:0], (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1} : {1'b0, 1'b1, X[M-1:0], (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1};
         M_minor_sign = (X_greater_than_Y) ? Y[M+E] : X[M+E];
         Ez = (X_greater_than_Y) ? X[E+M-1:M] : Y[E+M-1:M];
     end
+    if ((X_special_case >= 1 && X_special_case <= 4) || (Y_special_case >= 1 && Y_special_case <= 4)) begin
+        special_case_detected = 1;
+    end else begin
+        special_case_detected = 0;
+    end
     M_major_sign_output = M_major_sign;
     diff_abs = (diff < 0) ? -diff : diff;
-    //$display("diff_abs = %b", diff_abs);
 end
 
 //--------------------------------------------------------------------------------------------------
