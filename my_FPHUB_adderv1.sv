@@ -89,19 +89,25 @@ compare_mantissas #(M) compare_inst (
 logic [M+2:0] M_major, M_minor;
 logic M_major_sign, M_minor_sign;
 logic [E-1:0] Ez;
+logic X_one_implicit, Y_one_implicit;
+logic X_ilsb, Y_ilsb;
 
 always_comb begin
+    X_one_implicit = (X[E+M-1:M] == {E{1'b0}}) ? 1'b0 : 1'b1;
+    Y_one_implicit = (Y[E+M-1:M] == {E{1'b0}}) ? 1'b0 : 1'b1;
+    X_ilsb = (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1;
+    Y_ilsb = (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1;
     if (Ex_equal_Ey) begin
-        M_major = (Mx_greater_than_My) ? {1'b0, 1'b1, X[M-1:0], (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1} : {1'b0, 1'b1, Y[M-1:0], (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1};
+        M_major = (Mx_greater_than_My) ? {1'b0, X_one_implicit, X[M-1:0], X_ilsb} : {1'b0, Y_one_implicit, Y[M-1:0], Y_ilsb};
         M_major_sign = (Mx_greater_than_My) ? X[M+E] : Y[M+E];
-        M_minor = (Mx_greater_than_My) ? {1'b0, 1'b1, Y[M-1:0], (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1} : {1'b0, 1'b1, X[M-1:0], (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1};
+        M_minor = (Mx_greater_than_My) ? {1'b0, Y_one_implicit, Y[M-1:0], Y_ilsb} : {1'b0, X_one_implicit, X[M-1:0], X_ilsb};
         M_minor_sign = (Mx_greater_than_My) ? Y[M+E] : X[M+E];
         Ez = X[E+M-1:M];
     end
     else begin
-        M_major = (X_greater_than_Y) ? {1'b0, 1'b1, X[M-1:0], (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1} : {1'b0, 1'b1, Y[M-1:0], (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1};
+        M_major = (X_greater_than_Y) ? {1'b0, X_one_implicit, X[M-1:0], X_ilsb} : {1'b0, Y_one_implicit, Y[M-1:0], Y_ilsb};
         M_major_sign = (X_greater_than_Y) ? X[M+E] : Y[M+E];
-        M_minor = (X_greater_than_Y) ? {1'b0, 1'b1, Y[M-1:0], (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1} : {1'b0, 1'b1, X[M-1:0], (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1};
+        M_minor = (X_greater_than_Y) ? {1'b0, Y_one_implicit, Y[M-1:0], Y_ilsb} : {1'b0, X_one_implicit, X[M-1:0], X_ilsb};
         M_minor_sign = (X_greater_than_Y) ? Y[M+E] : X[M+E];
         Ez = (X_greater_than_Y) ? X[E+M-1:M] : Y[E+M-1:M];
     end
