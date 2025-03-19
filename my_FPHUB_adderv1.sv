@@ -14,7 +14,8 @@ module my_FPHUB_adder #(
     output logic [M+2:0] M_major_output,
     output logic [M+2:0] M_minor_output,
     output logic [M+2:0] M_minor_output_C2,
-    output logic signed[E:0] diff_output
+    output logic signed[E:0] diff_output,
+    output logic [E:0] Ez_output
 );
 //--------------------------------------------------------------------------------------------------
 // Identificación de casos especiales
@@ -140,7 +141,7 @@ logic [$clog2(M)-1:0] shift_LZA;
 logic [E-1:0] Ez_normalized;
 logic [E+M:0] result;
 
-LZA #(M)LZA_inst (
+LZD #(M)LZA_inst (
     .A(M_major[M+1:0]),
     .B(M_minor_aligned[M+1:0]),
     .shift_amt(shift_LZA)
@@ -172,9 +173,6 @@ always_comb begin
         M_result = M_major + M_minor_aligned;
     end
 
-    // BORRAR ESTA LINEA
-    result_out = M_result;
-
     // Normalization
     Ez_normalized = Ez;
     if (subtraction) begin
@@ -182,16 +180,43 @@ always_comb begin
             M_result = ~M_result + 1;
         end
         if (shift_LZA > 0) begin
-            M_result = M_result << shift_LZA;
-            Ez_normalized = Ez_normalized - shift_LZA;
+            if (Ez_normalized == {E{1'b0}}) begin
+                M_result = 0;
+            end
+            else begin
+                M_result = M_result << shift_LZA;
+                Ez_normalized = Ez_normalized - shift_LZA;
+            end
+//            Ez_normalized = Ez_normalized - shift_LZA;
+//            if (Ez_normalized[E] == 1) begin // Hay desbordamiento del exponente (underflow)
+//                Ez_normalized = 0;
+//                M_result = 0;
+//            end
+//            else begin
+//                M_result = M_result << shift_LZA;
+//            end         
         end
     end
     else begin
         if (M_result[M+2] == 1) begin
-            M_result = M_result >> 1;
-            Ez_normalized = Ez_normalized + 1;
+            if (Ez_normalized == {E{1'b1}}) begin
+                M_result = {(M+3){1'b1}};
+            end
+            else begin
+                M_result = M_result >> 1;
+                Ez_normalized = Ez_normalized + 1;
+            end         
         end
+//        Ez_normalized = Ez_normalized + 1;
+//        if (Ez_normalized[E] == 1) begin // Hay desbordamiento del exponente (overflow)
+//            Ez_normalized = {1'b0, {E{1'b1}}};
+//            M_result = {(M+3){1'b1}};
+//        end
+//        else begin
+//            M_result = M_result >> 1;
+//        end 
     end
+    result_out = M_result;
 
     Sz = (subtraction) ? M_major_sign : X[E+M];
     //if (subtraction) begin
@@ -201,7 +226,6 @@ always_comb begin
     //    Z[E+M] = X[E+M];    
     //end
     result = {Sz, Ez_normalized, M_result[M:1]};
-
     end
 
 assign Z = (special_case_detected) ? special_result : result;
