@@ -2,14 +2,15 @@
 
 module shifter #(
     parameter int M = 23,                       // Size of the mantissa
-    parameter int E = 8                         // Size of the exponent
+    parameter int E = 8,                        // Size of the exponent
+    parameter int extra_bits_mantissa = 7       // Number of extra bits for the mantissa
 ) ( 
-    input logic [M+2:0] number_input,           // Input X (1 bit: Sx [E+M]; 8 bits: Ex [E+M-1:M]; 23 bits: Mx [M-1:0]) 
+    input logic [M+extra_bits_mantissa-1:0] number_input,           // Input X (1 bit: Sx [E+M]; 8 bits: Ex [E+M-1:M]; 23 bits: Mx [M-1:0]) 
     input logic [E:0] shift_amount,            /* Shift ammount (this input is the difference between the exponents of X and Y 
                                                 in two's complement representation) */
     input logic right_shift,                    // Right shift flag (1: right shift; 0: left shift)
     input logic arithmetic_shift,               // Arithmetic shift flag (1: arithmetic shift; 0: logical shift)
-    output logic [M+2:0] number_output          // Output Z (same structure as X)
+    output logic [M+extra_bits_mantissa-1:0] number_output          // Output Z (same structure as X)
 );
 
 // Because the shift ammount is in two's complement representation, the shift ammount must be in absolute value
