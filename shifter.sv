@@ -10,8 +10,11 @@ module shifter #(
                                                 in two's complement representation) */
     input logic right_shift,                    // Right shift flag (1: right shift; 0: left shift)
     input logic arithmetic_shift,               // Arithmetic shift flag (1: arithmetic shift; 0: logical shift)
-    output logic [M+extra_bits_mantissa-1:0] number_output          // Output Z (same structure as X)
+    output logic [M+extra_bits_mantissa-1:0] number_output,          // Output Z (same structure as X)
+    input logic print
 );
+
+logic [M+extra_bits_mantissa-1:0] number_shifted;
 
 // Because the shift ammount is in two's complement representation, the shift ammount must be in absolute value
 //logic [E:0] shift_amount_abs;                           // Absolute value of the shift ammount
@@ -22,10 +25,15 @@ always_comb begin
 
     // Shift operation
     if (!right_shift)   // Left shift
-        number_output = number_input << shift_amount;
+        number_shifted = number_input << shift_amount;
     else if (right_shift && arithmetic_shift)   // Right arithmetic shift
-        number_output = number_input >>> shift_amount;
+        number_shifted = number_input >>> shift_amount;
     else    // Right logical shift
-        number_output = number_input >> shift_amount;
+        number_shifted = number_input >> shift_amount;
+    if (print) begin
+        $display("SHIFTER: number_input = %b, shift_amount = %d (%b) number_output = %b", number_input, shift_amount, shift_amount, number_shifted);
+    end
 end
+
+assign number_output = number_shifted;
 endmodule
