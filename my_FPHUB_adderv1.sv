@@ -8,272 +8,263 @@ module my_FPHUB_adder #(
     parameter int sign_mantissa_bit  = 1,
     parameter int one_implicit_bit   = 1,
     parameter int ilsb_bit           = 1,
-    parameter int extra_bits_mantissa = 7 + sign_mantissa_bit + one_implicit_bit + ilsb_bit
+    parameter int extra_bits_mantissa = 1 + sign_mantissa_bit + one_implicit_bit + ilsb_bit
 )(
     input  logic signed [E+M:0] X,  // Entrada X
     input  logic signed [E+M:0] Y,  // Entrada Y
-    output logic [E+M:0] Z,         // Salida Z
-    output logic [M+1:0] result_out, // Salida con la mantisa sumada/restada (para testbench)
-    output logic subtraction_output,
-    output logic M_major_sign_output,
-    output logic [M+extra_bits_mantissa-1:0] M_major_output,
-    output logic [M+extra_bits_mantissa-1:0] M_minor_output,
-    output logic [M+extra_bits_mantissa-1:0] M_minor_output_C2,
-    output logic signed [E:0] diff_output,
-    output logic [E:0] Ez_output,
-    output logic [$clog2(M)-1:0] shift_LZA_output
+    output logic [E+M:0] Z         // Salida Z
 );
 
 // Numeros para testing
 logic [E+M:0] X_prueba, Y_prueba;
-assign X_prueba = 9'b000100011;
-assign Y_prueba = 9'b100011110;
+assign X_prueba = 9'b011110011;
+assign Y_prueba = 9'b111111000;
 
-  //--------------------------------------------------------------------------------------------------
-  // Identificación de casos especiales
-  //--------------------------------------------------------------------------------------------------
-  logic [M+E:0] special_result;
-  logic [$clog2(special_case)-1:0] X_special_case, Y_special_case;
-  logic special_case_detected;
+//--------------------------------------------------------------------------------------------------
+// Identificación de casos especiales
+//--------------------------------------------------------------------------------------------------
+logic [M+E:0] special_result;
+logic [$clog2(special_case)-1:0] X_special_case, Y_special_case;
+logic special_case_detected;
 
-  special_cases_detector #(E, M, special_case) special_cases_inst (
-      .X(X),
-      .Y(Y),
-      .X_special_case(X_special_case),
-      .Y_special_case(Y_special_case)
-  );
+special_cases_detector #(E, M, special_case) special_cases_inst (
+    .X(X),
+    .Y(Y),
+    .X_special_case(X_special_case),
+    .Y_special_case(Y_special_case)
+);
 
-  special_result_for_adder #(E, M, special_case) special_result_inst (
-      .X(X),
-      .Y(Y),
-      .X_special_case(X_special_case),
-      .Y_special_case(Y_special_case),
-      .special_result(special_result)
-  );
+special_result_for_adder #(E, M, special_case) special_result_inst (
+    .X(X),
+    .Y(Y),
+    .X_special_case(X_special_case),
+    .Y_special_case(Y_special_case),
+    .special_result(special_result)
+);
 
-  //--------------------------------------------------------------------------------------------------
-  // Cálculo de la diferencia de exponentes
-  //--------------------------------------------------------------------------------------------------
-  logic signed [E:0] diff;
-  logic [E:0] diff_abs;
-  logic X_greater_than_Y;
-  logic Ex_equal_Ey;
+//--------------------------------------------------------------------------------------------------
+// Cálculo de la diferencia de exponentes
+//--------------------------------------------------------------------------------------------------
+logic signed [E:0] diff;
+logic [E:0] diff_abs;
+logic X_greater_than_Y;
+logic Ex_equal_Ey;
 
-  Exponent_difference #(E) Exponent_difference_inst (
-      .Ex(X[E+M-1:M]),
-      .Ey(Y[E+M-1:M]),
-      .dif(diff),
-      .X_greater_than_Y(X_greater_than_Y),
-      .Ex_equal_Ey(Ex_equal_Ey)
-  );
-  assign diff_output = diff;
+Exponent_difference #(E) Exponent_difference_inst (
+    .Ex(X[E+M-1:M]),
+    .Ey(Y[E+M-1:M]),
+    .dif(diff),
+    .X_greater_than_Y(X_greater_than_Y),
+    .Ex_equal_Ey(Ex_equal_Ey)
+);
 
-  logic Mx_greater_than_My;
-  logic [M:0] Mx_complete, My_complete;
+//--------------------------------------------------------------------------------------------------
+// Determinación de la operación efectiva y el signo del resultado
+//--------------------------------------------------------------------------------------------------
+logic subtraction, Sz;
+assign subtraction = X[E+M] ^ Y[E+M];
 
-  always_comb begin
-      Mx_complete = {1'b1, X[M-1:0]};
-      My_complete = {1'b1, Y[M-1:0]};
-  end
+//--------------------------------------------------------------------------------------------------
+// Organización de mantisas y signos
+//--------------------------------------------------------------------------------------------------
+// Las señales internas se definen con ancho M+extra_bits_mantissa
+logic signed [M+extra_bits_mantissa-1:0] M_major, M_minor, M_minor_ready;
+logic [E-1:0] Ez;
+// Flag para indicar a los otros módulos que deben imprimir valores
+logic print;
+// Bits del ilsb
+logic ilsb_x, ilsb_y;
 
-  compare_mantissas #(M) compare_inst (
-      .Mx(Mx_complete),
-      .My(My_complete),
-      .Mx_greater_than_My(Mx_greater_than_My)
-  );
+//--------------------------------------------------------------------------------------------------
+// Alineación de la mantisa menor usando un wire
+//--------------------------------------------------------------------------------------------------
+logic [M+extra_bits_mantissa-1:0] M_minor_aligned;
 
-  //--------------------------------------------------------------------------------------------------
-  // Organización de mantisas y signos
-  //--------------------------------------------------------------------------------------------------
-  // Las señales internas se definen con ancho M+extra_bits_mantissa
-  logic [M+extra_bits_mantissa-1:0] M_major, M_minor;
-  logic M_major_sign, M_minor_sign;
-  logic [E-1:0] Ez;
-  
-  logic print;
+shifter #(
+  .M(M),
+  .E(E),
+  .extra_bits_mantissa(extra_bits_mantissa)
+) shifter_inst (
+  .number_input(M_minor_ready),
+  .shift_amount(diff_abs),
+  .right_shift(1'b1),
+  .arithmetic_shift(1'b1),
+  .number_output(M_minor_aligned),
+  .print(print)
+);
 
-  // Definición de ilsb según casos especiales:
-  logic ilsb_x, ilsb_y;
-  always_comb begin
-      ilsb_x = (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1;
-      ilsb_y = (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1;
-      
-      if (Ex_equal_Ey) begin
-          M_major = (Mx_greater_than_My) ? 
-              { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, X[M-1:0], ilsb_x,
-                {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } } :
-              { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, Y[M-1:0], ilsb_y,
-                {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } };
-          M_major_sign = (Mx_greater_than_My) ? X[M+E] : Y[M+E];
-          M_minor = (Mx_greater_than_My) ? 
-              { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, Y[M-1:0], ilsb_y,
-                {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } } :
-              { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, X[M-1:0], ilsb_x,
-                {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } };
-          M_minor_sign = (Mx_greater_than_My) ? Y[M+E] : X[M+E];
-          Ez = X[E+M-1:M];
-      end
-      else begin
-          M_major = (X_greater_than_Y) ? 
-              { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, X[M-1:0], ilsb_x,
-                {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } } :
-              { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, Y[M-1:0], ilsb_y,
-                {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } };
-          M_major_sign = (X_greater_than_Y) ? X[M+E] : Y[M+E];
-          M_minor = (X_greater_than_Y) ? 
-              { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, Y[M-1:0], ilsb_y,
-                {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } } :
-              { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, X[M-1:0], ilsb_x,
-                {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } };
-          M_minor_sign = (X_greater_than_Y) ? Y[M+E] : X[M+E];
-          Ez = (X_greater_than_Y) ? X[E+M-1:M] : Y[E+M-1:M];
-      end
+//--------------------------------------------------------------------------------------------------
+// Suma/Resta de mantisas
+//--------------------------------------------------------------------------------------------------
+logic signed [M+extra_bits_mantissa-1:0] M_result, M_result_ready, M_normalize;
 
-      if ((X_special_case >= 1 && X_special_case <= 4) || (Y_special_case >= 1 && Y_special_case <= 4))
-          special_case_detected = 1;
-      else
-          special_case_detected = 0;
-      
-      M_major_sign_output = M_major_sign;
-      diff_abs = (diff < 0) ? -diff : diff;
-      
-      print = 0;
-      if (X == X_prueba && Y == Y_prueba) begin
-        $display("Antes de alinear: M_major = %b y M_minor = %b", M_major, M_minor);
-        $display("diferencia de exponentes = %d (%b)", diff_abs, diff_abs);
-        print = 1;
-      end
-  end
+logic [$clog2(M+extra_bits_mantissa-sign_mantissa_bit-1):0] shift_LZA;
+logic [E:0] Ez_normalized;
+logic [E+M:0] result;
 
-  //--------------------------------------------------------------------------------------------------
-  // Alineación de la mantisa menor usando un wire
-  //--------------------------------------------------------------------------------------------------
-  wire [M+extra_bits_mantissa-1:0] M_minor_aligned;
-
-  shifter #(
-      .M(M),
-      .E(E),
-      .extra_bits_mantissa(extra_bits_mantissa)
-  ) shifter_inst (
-      .number_input(M_minor),
-      .shift_amount(diff_abs),
-      .right_shift(1'b1),
-      .arithmetic_shift(1'b0),
-      .number_output(M_minor_aligned),
-      .print(print)
-  );
-  
-  
- assign M_major_output = M_major;
- assign M_minor_output = M_minor_aligned;
-
-  //--------------------------------------------------------------------------------------------------
-  // Suma/Resta de mantisas
-  //--------------------------------------------------------------------------------------------------
-  logic subtraction, Sz;
-  logic [M+extra_bits_mantissa-1:0] M_result, M1, M2;
-  logic [$clog2(M+extra_bits_mantissa-sign_mantissa_bit-1):0] shift_LZA;
-  logic [E:0] Ez_normalized;
-  logic [E+M:0] result;
-  
-  LZD #(
+LZD #(
       .M(M),
       .extra_bits_mantissa(extra_bits_mantissa),
       .sign_mantissa_bit(sign_mantissa_bit)
-  ) LZA_inst (
-      .A(M_major[M+extra_bits_mantissa-sign_mantissa_bit-1:0]),
-      .B(M_minor_aligned[M+extra_bits_mantissa-sign_mantissa_bit-1:0]),
+) LZA_inst (
+      .A(M_result_ready[M+extra_bits_mantissa-sign_mantissa_bit-1:0]),
       .shift_amt(shift_LZA),
       .print(print)
-  );
+);
+always_comb begin
+    // Se determina el signo del resultado
+    Sz = (X_greater_than_Y) ? X[E+M] : Y[E+M];
 
-  always_comb begin
-      if (X == X_prueba && Y == Y_prueba) begin
-        $display("Después de alinear: M_major = %b y M_minor_aligned = %b", M_major, M_minor_aligned);
-      end
-      subtraction = M_major_sign ^ M_minor_sign;
-      subtraction_output = subtraction;
+    // Definición del ILSB según los casos especiales (por defecto siempre es 1)
+    ilsb_x = (X_special_case == 5 || X_special_case == 6) ? 1'b0 : 1'b1;
+    ilsb_y = (Y_special_case == 5 || Y_special_case == 6) ? 1'b0 : 1'b1;
 
-//      M_major_output = M_major;
-//      M_minor_output = M_minor_aligned;
-      M_minor_output_C2 = ~M_minor_aligned + 1;
+    // Asignación de la mantisa mayor y menor
+    M_major = (X_greater_than_Y) ? 
+        { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, X[M-1:0], ilsb_x,
+        {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } } :
+        { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, Y[M-1:0], ilsb_y,
+        {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } };
 
-      if (subtraction) begin
-          if (M_major_sign)
-              M_result = (~M_major + 1) + M_minor_aligned;
-          else
-              M_result = M_major + (~M_minor_aligned + 1);
-      end
-      else begin
-          M_result = M_major + M_minor_aligned;
-      end
-      
-      if (X == X_prueba && Y == Y_prueba) begin
+    M_minor = (X_greater_than_Y) ? 
+        { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, Y[M-1:0], ilsb_y,
+        {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } } :
+        { {sign_mantissa_bit{1'b0}}, {one_implicit_bit{1'b1}}, X[M-1:0], ilsb_x,
+        {(extra_bits_mantissa - (sign_mantissa_bit+one_implicit_bit+ilsb_bit)){1'b0} } };
+    
+    // El exponente de salida es el mayor de los dos, a menos que se necesite normalización, en cuyo caso será corregido
+    Ez = (X_greater_than_Y) ? X[E+M-1:M] : Y[E+M-1:M];
+
+    // Flag de casos espceciales (concretamente los casos de cero e infinito)
+    if ((X_special_case >= 1 && X_special_case <= 4) || (Y_special_case >= 1 && Y_special_case <= 4))
+        special_case_detected = 1;
+    else
+        special_case_detected = 0;
+    
+    // Cálculo del valor absoluto de la diferencia de exponentes
+    diff_abs = (diff < 0) ? -diff : diff;
+
+    if (X == X_prueba && Y == Y_prueba) begin
+        $display("--------------------------------------");
+        $display("Caso de prueba: ");
+        $display("--------------------------------------");
+        $display("X = %b", X);
+        $display("Y = %b", Y);
+        $display("--------------------------------------");
+        $display("--------------------------------------");
+        $display("Antes de alinear: ");
+        $display("--------------------------------------");
+        $display("M_major = %b", M_major);
+        $display("M_minor = %b", M_minor);
+        $display("--------------------------------------");
+        print = 1;
+    end
+    
+    // Como el ILSB siempre estará en la penúltima posición de la mantisa y sabemos que es 1, solo invertimos los bits anteriores a él.
+    if (subtraction) begin
+        if (M_minor[1] == 1) begin
+            M_minor_ready = {~M_minor[M+extra_bits_mantissa-1:2], M_minor[1:0]};
+        end
+        else begin  // En los casos donde tengamos +1 o -1, asignaremos directamente el valor -1
+            M_minor_ready = {~M_minor[M+extra_bits_mantissa-1], M_minor[M+extra_bits_mantissa-2:0]};
+        end
+        if (X == X_prueba && Y == Y_prueba) begin
+            $display("--------------------------------------");
+            $display("Como hay resta, calculamos el complemento a 2 de M_minor: ");
+            $display("M_minor = %b", M_minor_ready);
+            $display("--------------------------------------");
+        end
+    end
+    else begin
+        M_minor_ready = M_minor;
+    end
+    
+    M_result = M_major + M_minor_aligned;
+    if (X == X_prueba && Y == Y_prueba) begin
+        $display("--------------------------------------");
+        $display("Despues de alinear: ");
+        $display("--------------------------------------");
+        $display("M_major = %b", M_major);
+        $display("M_minor = %b", M_minor_aligned);
+        $display("--------------------------------------");
         $display("Resultado despues de la operacion: %b", M_result);
-      end
-
-      // Normalización
-      Ez_normalized = {1'b0, Ez};
-      shift_LZA_output = shift_LZA;
-      if (X == X_prueba && Y == Y_prueba) begin
-         $display("Exponente antes de normalizar: %b", Ez_normalized);
-         $display("Cantidad de ceros devuelto por el LZD: %d (%b)", shift_LZA, shift_LZA);
-      end
-      if (subtraction) begin
-          if (M_result[M+extra_bits_mantissa-1] == 1) begin
-              M_result = ~M_result + 1;
-          end
-          if (X == X_prueba && Y == Y_prueba) begin
-             $display("Resultado despues del C2: %b", M_result);
-          end
-          if (shift_LZA[$clog2(M+extra_bits_mantissa-sign_mantissa_bit-1)]) begin //En el caso especial de que las mantisas son iguales
-            if (X == X_prueba && Y == Y_prueba) begin
-                $display("No se detectaron ceros, por lo que el resultado es 0");
-            end
+        $display("--------------------------------------");
+    end
+    // Si el resultado es negativo, se calcula el C2 del resultado y se corrige el signo.
+    if ((M_result[M+extra_bits_mantissa-1] == 1'b1) && subtraction) begin
+        M_result_ready = ~M_result + 1; 
+        Sz = ~Sz;
+        if (X == X_prueba && Y == Y_prueba) begin
+            $display("--------------------------------------");
+            $display("Se obtuvo resultado negativo. Se calcula el C2: ");
+            $display("C2(M_result): %b", M_result_ready);            
+            $display("--------------------------------------");
+        end       
+    end
+    else begin
+        M_result_ready = M_result;
+    end
+    
+    // Normalización
+    Ez_normalized = {1'b0, Ez};
+    M_normalize = M_result_ready;
+    if (X == X_prueba && Y == Y_prueba) begin
+        $display("M_normalize = %b", M_normalize);
+        $display("M_normalize[%d] = %b", M+extra_bits_mantissa-1, M_normalize[M+extra_bits_mantissa-1]);
+    end
+    if (subtraction) begin
+        if (shift_LZA[$clog2(M+extra_bits_mantissa-sign_mantissa_bit-1)]) begin //En el caso especial de que las mantisas son iguales
             Ez_normalized = {(E+1){1'b0}};
-            M_result = {(M+extra_bits_mantissa){1'b0}};           
-          end   
-          else if (shift_LZA > 0) begin
-              if (X == X_prueba && Y == Y_prueba) begin
-                $display("Normalización con LZA");
-              end
-              Ez_normalized = Ez_normalized - shift_LZA;
-              if (X == X_prueba && Y == Y_prueba) begin
-                $display("Exponente - LZA = %b", Ez_normalized);
-              end
-              if (Ez_normalized[E] == 1) begin //Underflow
+            M_normalize = {(M+extra_bits_mantissa){1'b0}};
+            if (X == X_prueba && Y == Y_prueba) begin
+                $display("Resta. Caso especial donde el resultado es 0");
+            end           
+        end   
+        else if (shift_LZA > 0) begin
+            Ez_normalized = Ez_normalized - shift_LZA;
+            if (Ez_normalized[E] == 1) begin //Underflow
                 Ez_normalized = {(E+1){1'b0}};
-                M_result = {(M+extra_bits_mantissa){1'b0}};
-              end
-              else begin
-                M_result = M_result << shift_LZA;
-              end
-          end
-      end
-      else begin    // Control de desbordamiento en la suma
-          if (M_result[M+extra_bits_mantissa-1] == 1) begin
-              Ez_normalized = Ez_normalized + 1'b1;
-              if (Ez_normalized[E] == 1) begin //Underflow
+                M_normalize = {(M+extra_bits_mantissa){1'b0}};
+            end
+            else begin
+                M_normalize = M_normalize << shift_LZA;
+            end
+            if (X == X_prueba && Y == Y_prueba) begin
+                $display("Resta. Se han detectado %d ceros a la izquierda.", shift_LZA);
+            end 
+        end
+    end
+    else begin    // Control de desbordamiento en la suma
+        if (M_normalize[M+extra_bits_mantissa-1] == 1'b1) begin
+            Ez_normalized = Ez_normalized + 1'b1;
+            if (Ez_normalized[E] == 1) begin //Underflow
                 Ez_normalized = {(E+1){1'b1}};
-                M_result = {(M+extra_bits_mantissa){1'b1}};
-              end
-              else begin              
-              M_result = M_result >> 1;
-              end
-          end
-      end
-      result_out = M_result;
+                M_normalize = {(M+extra_bits_mantissa){1'b1}};
+                if (X == X_prueba && Y == Y_prueba) begin
+                    $display("Suma. Overflow en el exponente.", shift_LZA);
+                end 
+            end
+            else begin
+                M_normalize = M_normalize >> 1;
+                if (X == X_prueba && Y == Y_prueba) begin
+                    $display("Suma. Overflow en la mantisa.", shift_LZA);
+                end 
+            end
+        end
+    end
+    if (X == X_prueba && Y == Y_prueba) begin
+        $display("Mantisa normalizada = %b", M_normalize);
+        $display("Se selecciona: %b", M_normalize[M+extra_bits_mantissa-3 : extra_bits_mantissa-2]);
+    end
+    
+    // Extraer los M bits de la fracción (después de los dos bits superiores: sign y bit implícito)
+    result = {Sz, Ez_normalized[E-1:0], M_normalize[M+extra_bits_mantissa-3 : extra_bits_mantissa-2]};
+    
+    if (X == X_prueba && Y == Y_prueba) begin
+        $display("Z = %b", result);
+    end
+end
 
-      Sz = (subtraction) ? M_major_sign : X[E+M];
-      // Extraer los M bits de la fracción (después de los dos bits superiores: sign y bit implícito)
-      result = {Sz, Ez_normalized[E-1:0], M_result[M+extra_bits_mantissa-3 : extra_bits_mantissa-2]};
-      
-      if (X == X_prueba && Y == Y_prueba) begin
-         $display("Z = %b", result);
-      end
-  end
+assign Z = (special_case_detected) ? special_result : result;
 
-  assign Z = (special_case_detected) ? special_result : result;
-  assign Ez_output = Ez;
-  
 endmodule
