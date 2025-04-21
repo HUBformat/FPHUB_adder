@@ -1,5 +1,27 @@
-`timescale 1ns / 1ps
+/*--------------------------------------------------------------------------------------------------
+    Module: FPHUB Adder
 
+    Description: This module implements a floating-point adder with support for special cases.
+
+    Parameters:
+        - M: Mantissa size
+        - E: Exponent size
+        - special_case: Number of special cases (including non-special)
+        - sign_mantissa_bit: Sign bit for mantissa
+        - one_implicit_bit: Implicit bit for mantissa
+        - ilsb_bit: ILSB bit for mantissa
+        - extra_bits_mantissa: Extra bits for mantissa
+
+    Inputs:
+        - start: Start signal for the operation
+        - X: First floating-point number (input)
+        - Y: Second floating-point number (input)
+
+    Outputs:
+        - finish: Finish signal indicating operation completion
+        - Z: Result of the floating-point addition
+
+--------------------------------------------------------------------------------------------------*/
 module my_FPHUB_adder #(
     parameter int M = 23,              // Mantissa size
     parameter int E = 8,               // Exponent size
@@ -17,17 +39,39 @@ module my_FPHUB_adder #(
     output logic [E+M:0] Z          // Output Z
 );
 
-// Test numbers
+// Debug mode for testing specific cases
 logic [E+M:0] X_prueba, Y_prueba;
 assign X_prueba = 9'b011110011;
 assign Y_prueba = 9'b111111000;
 
-//--------------------------------------------------------------------------------------------------
-// Special case identification
-//--------------------------------------------------------------------------------------------------
+/*--------------------------------------------------------------------------------------------------
+    This part of the circuit is about to detect special cases. It is used two modules:
+    - special_cases_detector: Detects special cases in the inputs X and Y.
+    - special_result_for_adder: Generates the special result based on the detected special cases.
+    The special result is used when the inputs are special cases (e.g., 0, 1, infinity, etc.).
+--------------------------------------------------------------------------------------------------*/
 logic [M+E:0] special_result;
 logic [$clog2(special_case)-1:0] X_special_case, Y_special_case;
 logic special_case_detected;
+
+/*--------------------------------------------------------------------------------------------------
+    Module: special_cases_detector
+
+    Description: This module detects special cases in the inputs X and Y.
+
+    Parameters:
+        - M: Mantissa size
+        - E: Exponent size
+        - special_case: Number of special cases (including non-special)
+
+    Inputs:
+        - X: First floating-point number (input)
+        - Y: Second floating-point number (input)
+
+    Outputs:
+        - X_special_case: Special case identifier for input X
+        - Y_special_case: Special case identifier for input Y
+--------------------------------------------------------------------------------------------------*/
 
 special_cases_detector #(E, M, special_case) special_cases_inst (
     .X(X),
