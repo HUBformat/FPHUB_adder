@@ -1,5 +1,91 @@
 ﻿<link rel="stylesheet" href="../styles/main.css" type="text/css">
-<h1 class="CTitle" id="fphub_adder">FPHUB_adder</h1>
-<p>In this repository I’m developing a new version of the 32 bits adder
-in FPHUB format with a new modulated structure and its testbecnh in
-order to test the module.</p>
+<h1 class="CTitle" id="floating-point-adder-hub-format">Floating-Point
+Adder (HUB Format)</h1>
+<h2 class="CHeading" id="overview">Overview</h2>
+<p>This module implements a custom <strong>floating-point adder</strong>
+using a simplified, educational format referred to as
+<strong>HUB</strong>. The design supports normalized numbers only, and
+handles key IEEE 754-style special cases like ±zero, ±infinity, and
+±one. The goal is to offer a modular, understandable architecture for
+floating-point addition in digital systems.</p>
+<p>The core component (<code>my_FPHUB_adderv1</code>) takes two inputs
+in HUB format and returns a correctly computed sum, managing alignment,
+normalization, overflow, and special cases through a series of
+coordinated submodules.</p>
+<hr />
+<h2 class="CHeading" id="hub-format">HUB Format</h2>
+<p>Each operand is composed of: - 1-bit <strong>sign</strong>. - E-bit
+<strong>exponent</strong>. - M-bit <strong>mantissa</strong>, where the
+leading 1 is implicit (normalized form).</p>
+<p>There are <strong>no subnormals</strong>. Even when the exponent is
+zero, the implicit one is still present in the mantissa.</p>
+<hr />
+<h2 class="CHeading" id="key-features">Key Features</h2>
+<ul>
+<li><strong>Modular architecture</strong>: The design is split into
+dedicated, self-contained submodules.</li>
+<li><strong>Special case support</strong>: Recognizes and handles ±0,
+±1, and ±∞.</li>
+<li><strong>Two’s complement subtraction</strong>: Proper handling of
+signed operations.</li>
+<li><strong>Leading zero anticipation (LZA)</strong>: Enables accurate
+normalization.</li>
+<li><strong>Debug hooks</strong>: Includes <code>X_prueba</code> and
+<code>Y_prueba</code> test hooks for simulation logging.</li>
+</ul>
+<hr />
+<h2 class="CHeading" id="submodules">Submodules</h2>
+<ul>
+<li><a href="#Exponent_difference"><code>Exponent_difference</code></a>:
+Computes signed difference between exponents and determines which
+operand is greater.</li>
+<li><a
+href="#special_cases_detector"><code>special_cases_detector</code></a>:
+Classifies each operand (e.g., normal, zero, infinity, one).</li>
+<li><a
+href="#special_result_for_adder"><code>special_result_for_adder</code></a>:
+Produces predefined result when special cases are present.</li>
+<li><a href="#shifter"><code>shifter</code></a>: Aligns the minor
+mantissa by performing arithmetic right shifts.</li>
+<li><a href="#LZD"><code>LZD</code></a>: Leading Zero Detector for
+result normalization.</li>
+</ul>
+<hr />
+<h2 class="CHeading" id="result-composition">Result Composition</h2>
+<p>After normalization and overflow control, the final result is
+assembled from: - Sign bit (<code>Sz</code>) - Normalized exponent
+(<code>Ez_normalized</code>) - Most significant bits of the mantissa
+(<code>M_normalize</code>)</p>
+<p>The output is a valid HUB-formatted floating-point number.</p>
+<hr />
+<h2 class="CHeading" id="usage">Usage</h2>
+<p>To integrate the adder into your own project:</p>
+<ol type="1">
+<li><strong>Instantiate</strong> the top module
+<code>my_FPHUB_adderv1</code>, or connect its submodules individually
+for advanced control.</li>
+<li><strong>Provide inputs</strong> <code>X</code> and <code>Y</code>
+using the custom HUB format:
+<code>{sign, exponent, mantissa}</code>.</li>
+<li><strong>Monitor</strong> the <code>finish</code> output to detect
+when the operation has completed.</li>
+<li><strong>Read</strong> the output <code>Z</code>, which will contain
+the final result in HUB format.</li>
+</ol>
+<h3 class="CHeading" id="parameterization">Parameterization</h3>
+<p>The adder is <strong>fully parameterizable</strong>: - You can adjust
+the number of exponent bits (<code>E</code>) and mantissa bits
+(<code>M</code>) via parameters. - By default, the module uses <strong>E
+= 8</strong> and <strong>M = 23</strong>, which corresponds to a 32-bit
+floating-point format (1 + 8 + 23 bits). - This allows easy scaling of
+precision for custom applications, embedded systems, or educational
+experiments.</p>
+<hr />
+<h2 class="CHeading" id="simulation-support">Simulation Support</h2>
+<p>When <code>X_prueba</code> and <code>Y_prueba</code> are matched,
+detailed <code>$display</code> logs are printed to facilitate debugging
+during testbench simulation.</p>
+<hr />
+<h2 class="CHeading" id="license">License</h2>
+<p>This project is intended for educational and research purposes. Feel
+free to adapt it to your own system design work or coursework.</p>
