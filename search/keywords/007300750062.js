@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("sub",["Variable","Section"],[["Subtraction",,[[,"subtraction",,,0,"File:FPHUB_adder.sv:subtraction"],[,"Mantissa Preparation for Subtraction",,,1,"File:FPHUB_adder.sv:Mantissa_Preparation_for_Subtraction"]]]]);

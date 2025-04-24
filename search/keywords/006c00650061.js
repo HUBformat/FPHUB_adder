@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("lea",["Section"],[["Leading",,[[,"Leading Zero Detection and Normalization",,,0,"File:FPHUB_adder.sv:Leading_Zero_Detection_and_Normalization"]]]]);

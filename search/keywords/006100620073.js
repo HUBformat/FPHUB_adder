@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("abs",["Section"],[["Absolute",,[[,"Exponent Difference Absolute Value",,,0,"File:FPHUB_adder.sv:Exponent_Difference_Absolute_Value"]]]]);

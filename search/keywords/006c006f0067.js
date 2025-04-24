@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("log",["Section"],[["logic",,[[,"Shift logic",,,0,"File:shifter.sv:Shift_logic"]]]]);

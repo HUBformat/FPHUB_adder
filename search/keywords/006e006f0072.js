@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("nor",["Section"],[["Normalization",,[[,"Normalization and Exponent Adjustment",,,0,"File:FPHUB_adder.sv:Normalization_and_Exponent_Adjustment"],[,"Leading Zero Detection and Normalization",,,0,"File:FPHUB_adder.sv:Leading_Zero_Detection_and_Normalization"]]]]);

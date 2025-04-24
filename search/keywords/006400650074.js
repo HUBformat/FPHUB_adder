@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("det",["Section"],[["Detection",,[[,"Detection of special cases",,,0,"File:special_cases_detector.sv:Detection_of_special_cases"],[,"Exponent and Special Case Detection",,,0,"File:FPHUB_adder.sv:Exponent_and_Special_Case_Detection"],[,"Leading Zero Detection and Normalization",,,0,"File:FPHUB_adder.sv:Leading_Zero_Detection_and_Normalization"]]]]);

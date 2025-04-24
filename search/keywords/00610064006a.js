@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("adj",["Section"],[["Adjustment",,[[,"Normalization and Exponent Adjustment",,,0,"File:FPHUB_adder.sv:Normalization_and_Exponent_Adjustment"]]]]);

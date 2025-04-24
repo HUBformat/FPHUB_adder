@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("SystemVerilogModule:shifter","shifter");NDSummary.OnSummaryLoaded("SystemVerilogModule:shifter",[["SystemVerilog","SystemVerilog"]],[["Modules","Module"]],[[1,0,0,"shifter"]]);

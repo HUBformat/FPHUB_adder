@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("cou",["Function"],[["count_leading_zeros",,[["LZD",,,,0,"File:LZD.sv:LZD.count_leading_zeros","SystemVerilogModule:LZD:count_leading_zeros"]]]]);

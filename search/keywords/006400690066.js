@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("dif",["Variable","Section"],[["diff",,[[,,,,0,"File:FPHUB_adder.sv:diff"]]],["diff_abs",,[[,,,,0,"File:FPHUB_adder.sv:diff_abs"]]],["Difference",,[[,"Exponent Difference Absolute Value",,,1,"File:FPHUB_adder.sv:Exponent_Difference_Absolute_Value"],[,"Exponent Difference Calculation",,,1,"File:FPHUB_adder.sv:Exponent_Difference_Calculation"]]]]);

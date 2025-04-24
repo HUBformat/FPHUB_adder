@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("ope",["Section"],[["Operation",,[[,"Mantissa Operation",,,0,"File:FPHUB_adder.sv:Mantissa_Operation"],[,"Sign and Operation Selection",,,0,"File:FPHUB_adder.sv:Sign_and_Operation_Selection"]]]]);

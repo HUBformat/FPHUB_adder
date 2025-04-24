@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("sig",["Section"],[["Sign",,[[,"Sign and Operation Selection",,,0,"File:FPHUB_adder.sv:Sign_and_Operation_Selection"],[,"Result Sign Correction",,,0,"File:FPHUB_adder.sv:Result_Sign_Correction"]]]]);

@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("com",["Section"],[["comparison",,[[,"Exponent comparison",,,0,"File:Exponent_difference.sv:Exponent_comparison"]]],["Completion",,[[,"Final Output Selection and Completion Flag",,,0,"File:FPHUB_adder.sv:Final_Output_Selection_and_Completion_Flag"]]]]);

@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("File:Exponent_difference.sv","Exponent_difference.sv");NDSummary.OnSummaryLoaded("File:Exponent_difference.sv",[["SystemVerilog","SystemVerilog"]],[["Modules","Module"],["Sections","Section"]],[[95,0,0,"Exponent_difference","Exponent_difference"],[96,0,1,"Exponent comparison","Exponent_comparison"]]);

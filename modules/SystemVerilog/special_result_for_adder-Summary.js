@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("SystemVerilogModule:special_result_for_adder","special_result_for_adder");NDSummary.OnSummaryLoaded("SystemVerilogModule:special_result_for_adder",[["SystemVerilog","SystemVerilog"]],[["Modules","Module"]],[[69,0,0,"special_result_for_adder"]]);

@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("con",["Section"],[["constants",,[[,"Special result constants",,,0,"File:special_result_for_adder.sv:Special_result_constants"]]],["Construction",,[[,"Mantissa Construction",,,0,"File:FPHUB_adder.sv:Mantissa_Construction"]]]]);

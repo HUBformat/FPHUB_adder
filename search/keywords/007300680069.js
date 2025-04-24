@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("shi",["Section","Variable","Module"],[["Shift",,[[,"Shift logic",,,0,"File:shifter.sv:Shift_logic"]]],["shift_LZA",,[[,,,,1,"File:FPHUB_adder.sv:shift_LZA"]]],["shifter",,[[,,,,2,"File:shifter.sv:shifter","SystemVerilogModule:shifter"]]]]);

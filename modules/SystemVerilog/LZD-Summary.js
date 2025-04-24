@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("SystemVerilogModule:LZD","LZD");NDSummary.OnSummaryLoaded("SystemVerilogModule:LZD",[["SystemVerilog","SystemVerilog"]],[["Functions","Function"],["Groups","Group"],["Modules","Module"]],[[81,0,2,"LZD"],[82,0,1,"Functions","Functions"],[83,0,0,"count_leading_zeros","count_leading_zeros"]]);
