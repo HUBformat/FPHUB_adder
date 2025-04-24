@@ -4,7 +4,7 @@
 
 This module implements a custom **floating-point adder** using a simplified, educational format referred to as **HUB**. The design supports normalized numbers only, and handles key IEEE 754-style special cases like ±zero, ±infinity, and ±one. The goal is to offer a modular, understandable architecture for floating-point addition in digital systems.
 
-The core component (`my_FPHUB_adderv1`) takes two inputs in HUB format and returns a correctly computed sum, managing alignment, normalization, overflow, and special cases through a series of coordinated submodules.
+The core component (`FPHUB_adder`) takes two inputs in HUB format and returns a correctly computed sum, managing alignment, normalization, overflow, and special cases through a series of coordinated submodules.
 
 ---
 
