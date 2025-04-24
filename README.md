@@ -11,6 +11,7 @@ The core component (`my_FPHUB_adderv1`) takes two inputs in HUB format and retur
 ## HUB Format
 
 Each operand is composed of:
+
 - 1-bit **sign**.
 - E-bit **exponent**.
 - M-bit **mantissa**, where the leading 1 is implicit (normalized form).
@@ -42,6 +43,7 @@ There are **no subnormals**. Even when the exponent is zero, the implicit one is
 ## Result Composition
 
 After normalization and overflow control, the final result is assembled from:
+
 - Sign bit (`Sz`)
 - Normalized exponent (`Ez_normalized`)
 - Most significant bits of the mantissa (`M_normalize`)
