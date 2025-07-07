@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+//`timescale 1ns / 1ps
 // Real LZA module with a hierarchical (prefix tree) network
 // Parameters:
 //   M: total input width (e.g., 32 bits)
