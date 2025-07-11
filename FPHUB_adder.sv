@@ -573,19 +573,27 @@ Determines the final result to output and signals the completion of the operatio
 - The *finish* flag is set to 1 to indicate that the computation has completed.
 */
 
+logic [31:0] Z_ff;
+logic finish_ff;
+
+ rvdff  #(32) zff               ( .clk(clk),       .rst_l(rst_l),     .din(Z_ff[31:0]), .dout(Z[31:0]));
+ rvdff  #(1) finishff               ( .clk(clk),   .rst_l(rst_l),         .din(finish_ff), .dout(finish));
+
 always_ff @(posedge clk or negedge rst_l) begin
     if (!rst_l) begin
+        Z_ff <= '0;
         Z <= '0;
         finish <= 1'b0;
+        finish_ff <= 1'b0;
     end
     else begin
         if (start) begin
-            Z <= (special_case_detected) ? special_result : result;
-            finish <= 1'b1;
+            Z_ff <= (special_case_detected) ? special_result : result;
+            finish_ff <= 1'b1;
         end
         else begin 
-            Z <= '0;
-            finish <= 1'b0;
+            Z_ff <= '0;
+            finish_ff <= 1'b0;
         end
     end
 end
