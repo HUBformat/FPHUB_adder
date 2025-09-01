@@ -34,8 +34,6 @@ module FPHUB_adder #(
     parameter int extra_bits_mantissa = 1 + sign_mantissa_bit + one_implicit_bit + ilsb_bit
 )
 (
-    input  logic clk,
-    input  logic rst_l,
     input  logic start,             
     input  logic signed [E+M:0] X,  
     input  logic signed [E+M:0] Y,  
@@ -573,39 +571,15 @@ Determines the final result to output and signals the completion of the operatio
 - The *finish* flag is set to 1 to indicate that the computation has completed.
 */
 
-logic [31:0] Z_ff;
-logic finish_ff;
-
- rvdff  #(32) zff               ( .clk(clk),       .rst_l(rst_l),     .din(Z_ff[31:0]), .dout(Z[31:0]));
- rvdff  #(1) finishff               ( .clk(clk),   .rst_l(rst_l),         .din(finish_ff), .dout(finish));
-
-always_ff @(posedge clk or negedge rst_l) begin
-    if (!rst_l) begin
-        Z_ff <= '0;
-        Z <= '0;
-        finish <= 1'b0;
-        finish_ff <= 1'b0;
-    end
-    else begin
-        if (start) begin
-            Z_ff <= (special_case_detected) ? special_result : result;
-            finish_ff <= 1'b1;
-        end
-        else begin 
-            Z_ff <= '0;
-            finish_ff <= 1'b0;
-        end
-    end
-end
 /* Variable: Z
    Final output of the module. Chooses between a special result or the normal computed result.
 */
-//assign Z = (special_case_detected) ? special_result : result;
+assign Z = (special_case_detected) ? special_result : result;
 
 /* Variable: finish
    Control signal set to 1 when the operation is complete.
 */
-//assign finish = 1'b1;
+assign finish = 1'b1;
 
 
 endmodule
