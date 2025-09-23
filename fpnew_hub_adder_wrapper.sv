@@ -1,19 +1,19 @@
 module fpnew_hub_adder_wrapper #(
-  parameter FpFormat = fpnew_pkg::FP32,
+  parameter FpFormat = fpnew_pkg::FP16,
   parameter int M = fpnew_pkg::man_bits(FpFormat),
   parameter int E = fpnew_pkg::exp_bits(FpFormat)
 )(
   // Interfaz de entrada de FPnew
   input logic                    clk_i,
   input logic                    rst_ni,
-  input logic [2:0][31:0]        operands_i,
+  input logic [2:0][15:0]        operands_i,
   input fpnew_pkg::operation_e   op_i,
   input logic                    op_mod_i,
   input logic                    in_valid_i,
   output logic                   in_ready_o,
   input logic                    flush_i,
   // Interfaz de salida de FPnew
-  output logic [31:0]            result_o,
+  output logic [15:0]            result_o,
   output fpnew_pkg::status_t     status_o,
   output logic                   out_valid_o,
   input logic                    out_ready_i

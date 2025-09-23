@@ -264,7 +264,9 @@ LZD #(
 );
 
 always_comb begin
+    $display("SUMADOR HUB");
     if (start) begin
+        $display("INICIO DE SUMA");
         /*
         Section: Sign and Operation Selection
 
