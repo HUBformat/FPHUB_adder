@@ -1,1 +1,1 @@
-﻿NDFramePage.OnPageTitleLoaded("SystemVerilogModule:Exponent_difference","Exponent_difference");NDSummary.OnSummaryLoaded("SystemVerilogModule:Exponent_difference",[["SystemVerilog","SystemVerilog"]],[["Modules","Module"]],[[95,0,0,"Exponent_difference"]]);
+﻿NDFramePage.OnPageTitleLoaded("SystemVerilogModule:Exponent_difference","Exponent_difference");NDSummary.OnSummaryLoaded("SystemVerilogModule:Exponent_difference",[["SystemVerilog","SystemVerilog"]],[["Modules","Module"]],[[1,0,0,"Exponent_difference"]]);

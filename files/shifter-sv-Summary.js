@@ -1,1 +1,1 @@
-﻿NDFramePage.OnPageTitleLoaded("File:shifter.sv","shifter.sv");NDSummary.OnSummaryLoaded("File:shifter.sv",[["SystemVerilog","SystemVerilog"]],[["Modules","Module"],["Sections","Section"]],[[1,0,0,"shifter","shifter"],[2,0,1,"Shift logic","Shift_logic"]]);
+﻿NDFramePage.OnPageTitleLoaded("File:shifter.sv","shifter.sv");NDSummary.OnSummaryLoaded("File:shifter.sv",[["SystemVerilog","SystemVerilog"]],[["Modules","Module"],["Sections","Section"]],[[84,0,0,"shifter","shifter"],[85,0,1,"Shift logic","Shift_logic"]]);
