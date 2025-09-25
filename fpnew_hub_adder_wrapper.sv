@@ -44,16 +44,17 @@ module fpnew_hub_adder_wrapper #(
   assign in_ready_o = 1'b1;
   
   // Inicia la operación en tu módulo FPHUB_adder cuando se recibe una operación válida
-  always @(posedge clk_i) begin
-    if (rst_ni == 1'b0 || flush_i == 1'b1) begin
-      hub_start_signal <= 1'b0;
-    end else if (in_valid_i && in_ready_o) begin
-      hub_start_signal <= 1'b1;
-    end
-  end
+  assign hub_start_signal = 1'b1;
+  //always @(posedge clk_i) begin
+  //  if (rst_ni == 1'b0 || flush_i == 1'b1) begin
+  //    hub_start_signal <= 1'b0;
+  //  end else if (in_valid_i && in_ready_o) begin
+  //    hub_start_signal <= 1'b1;
+  //  end
+  //end
 
   // El resultado está listo cuando tu módulo FPHUB_adder termina
-  assign out_valid_o = hub_finish_signal;
+  assign out_valid_o = in_valid_i;
   assign result_o = hub_Z;
 
   // Los flags de estado deben ser manejados por tu módulo o por lógica de conversión
